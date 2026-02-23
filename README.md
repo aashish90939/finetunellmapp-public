@@ -2,6 +2,30 @@
 
 A FastAPI + React UI for fine-tuning (or just running) HF causal LMs with LoRA/QLoRA, plus an inference playground. Core training/inference logic lives in `app_core/` (your original code), exposed programmatically via the backend API and the frontend.
 
+## Why this project is useful
+
+This project is a practical control center for fine-tuning workflows:
+
+- Configure training/inference settings from a UI instead of editing scripts each time.
+- Launch runs quickly with dataset upload + config overrides.
+- Monitor progress, loss, and logs in one place.
+- Reuse finished runs for inference without manual wiring.
+
+In short: less setup friction, better visibility, faster iteration.
+
+## Who this is for
+
+- Builders who want a usable fine-tuning dashboard, not just raw training scripts.
+- Teams/solo devs who run experiments and need run tracking and repeatability.
+- People hosting model training on a server but wanting a simple web UI to control it.
+- Learners who want to understand LoRA/QLoRA workflows end-to-end.
+
+## Where to run it
+
+- Recommended: run backend training on Linux + Nvidia GPU (cloud or on-prem), and use the UI to manage runs.
+- Optional: run everything locally for lightweight experiments if your machine has enough memory/compute.
+- Mac laptops are good for development, API/UI testing, and small experiments; serious fine-tuning is usually better on GPU servers.
+
 ## Stack
 
 - Backend: FastAPI, `transformers`, `peft`, optional bitsandbytes (4-bit), PyTorch.
@@ -44,6 +68,14 @@ A FastAPI + React UI for fine-tuning (or just running) HF causal LMs with LoRA/Q
      volumes:
        - ./hf-cache:/root/.cache/huggingface/hub
    ```
+
+## Recommended deployment pattern
+
+For practical use, treat this repo as a UI + API layer over compute:
+
+- Frontend: local machine or static host.
+- Backend: GPU server (RunPod/AWS/GCP/etc.) with persistent storage.
+- Volumes: persist `outputs/`, `data/`, and HF cache.
 
 ## Running (venv, no Docker)
 
