@@ -1,6 +1,6 @@
 # LLM Finetuning Workbench
 
-A FastAPI + React UI for fine-tuning (or just running) HF causal LMs with LoRA/QLoRA, plus an inference playground. Core training/inference logic lives in `app_core/` (your original code), exposed programmatically via the backend API and the frontend.
+This repo provides a FastAPI + React UI for fine-tuning (or just running) HF causal LMs with LoRA/QLoRA, plus an inference playground. Core training/inference logic lives in `app_core/` and is exposed via backend APIs and the frontend UI.
 
 ## Why this project is useful
 
@@ -26,6 +26,24 @@ In short: less setup friction, better visibility, faster iteration.
 - Optional: run everything locally for lightweight experiments if your machine has enough memory/compute.
 - Mac laptops are good for development, API/UI testing, and small experiments; serious fine-tuning is usually better on GPU servers.
 
+## Hardware guide (rough)
+
+These numbers are practical starting points for LoRA/QLoRA-style fine-tuning and can vary by sequence length, batch size, and model architecture.
+
+| Model size | Local Mac (unified memory)          | Nvidia GPU (VRAM) | Practical expectation               |
+| ---------- | ----------------------------------- | ----------------- | ----------------------------------- |
+| 1B to 1.5B | 16GB minimum, 24GB smoother         | 8GB to 16GB       | Good for small/medium experiments   |
+| 3B to 4B   | 24GB to 32GB preferred              | 16GB to 24GB      | Usually better on GPU server        |
+| 7B to 8B   | 48GB+ recommended                   | 24GB to 48GB      | Server-first, local is limited/slow |
+| 13B+       | Not practical for most local setups | 48GB+             | Use dedicated GPU infrastructure    |
+
+If running locally with low memory, start with:
+
+- `model_name` in the 1B to 1.5B range
+- `per_device_train_batch_size=1`
+- shorter sequence lengths (`max_source_length`/`max_target_length`)
+- `load_in_4bit=False` on Mac when bitsandbytes is unavailable
+
 ## Stack
 
 - Backend: FastAPI, `transformers`, `peft`, optional bitsandbytes (4-bit), PyTorch.
@@ -34,7 +52,7 @@ In short: less setup friction, better visibility, faster iteration.
 
 ## Repo layout
 
-- `app_core/`: original training/inference modules (`config.py`, `model.py`, `prompts.py`, etc.).
+- `app_core/`: core training/inference modules (`config.py`, `model.py`, `prompts.py`, etc.).
 - `shared/training/run.py`: programmatic training entry that creates per-run folders, logs, metrics.
 - `backend/`: FastAPI app and services (`/api/config`, `/api/datasets`, `/api/runs`, `/api/infer`, `/api/auth`).
 - `frontend/`: React UI (forms for config, dataset upload, run launch, logs/metrics, inference).
@@ -135,8 +153,3 @@ cd frontend && npm install && npm run dev
 - Adjust `model_name`, `max_source_length`, `max_target_length`, `per_device_train_batch_size`, `gradient_accumulation_steps`, and LoRA params based on memory.
 - For Mac/CPU: smaller models (e.g., 1–3B), disable 4-bit, keep sequences short.
 - For GPU: keep 4-bit enabled and start with small batch size to avoid OOM.
-
-## Notes
-
-- The original script UI (`app_core/main.py`) is still present but not used by the new backend.
-- Jupyter notebooks are intentionally gitignored in this public-safe starter. Add sanitized examples later if needed.
